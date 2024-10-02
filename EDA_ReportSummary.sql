@@ -1,6 +1,5 @@
-				-- Management summary reports
-
-
+				-- Management request summary 
+				
 -- Total amount purchased from each supplier.  
 SELECT SUM(PurchaseAmount) TotalAmountPurchased, 
 ST.SupplierID, 
@@ -12,7 +11,7 @@ ORDER BY ST.SupplierID
 
 
 
--- Total amount purchased from each supplier and their country.  
+-- Total amount purchased from each supplier and their countries.  
 SELECT SUM(PurchaseAmount) TotalAmountPurchased, 
 	ST.SupplierID, 
 	CONCAT(S.FirstName, ' ', S.LastName) SupplierName,
@@ -90,6 +89,28 @@ ORDER BY QuantityOrdered DESC
 
 
 
+		--Ranked quantity of items ordered, by City and country
+WITH QuantityOrdered AS (
+	SELECT 
+		SUM(OrderQty) QuantityOrdered,
+		C.CityName, 
+		CT.CountryName
+	from ods.SupplierTrans ST
+	JOIN ods.Supplier S ON ST.SupplierID = S.SupplierID
+	LEFT JOIN ods.SupplierAddress SA ON S.AddressID = SA.AddressID
+	LEFT JOIN ods.City C ON SA.cityID = C.cityID
+	LEFT JOIN ods.StateProvince SP ON C.ProvinceID = SP.ProvinceID
+	LEFT JOIN ods.Country CT ON SP.CountryID = CT.CountryID
+	Group by CT.CountryName, C.CityName
+	--ORDER BY CountryName
+), CityRank AS (
+	SELECT *, DENSE_RANK () OVER (Partition BY CountryName ORDER BY QuantityOrdered) AS Ranking
+	FROM QuantityOrdered
+)
+SELECT * FROM CityRank
+
+
+
 --Number of transactions by city and country
 SELECT COUNT(ST.TransID) NoOfTransactions, 
 	C.CityName,
@@ -123,36 +144,24 @@ ORDER BY CountryName
 
 
 
---Ranked quantity of items purchased, by City and country
-WITH QuantityOrdered AS (
-	SELECT 
-		SUM(OrderQty) QuantityOrdered,
-		C.CityName, 
-		CT.CountryName
-	from ods.SupplierTrans ST
-	JOIN ods.Supplier S ON ST.SupplierID = S.SupplierID
-	LEFT JOIN ods.SupplierAddress SA ON S.AddressID = SA.AddressID
-	LEFT JOIN ods.City C ON SA.cityID = C.cityID
-	LEFT JOIN ods.StateProvince SP ON C.ProvinceID = SP.ProvinceID
-	LEFT JOIN ods.Country CT ON SP.CountryID = CT.CountryID
-	Group by CT.CountryName, C.CityName
-	--ORDER BY CountryName
-), CityRank AS (
-	SELECT *, DENSE_RANK () OVER (Partition BY CountryName ORDER BY QuantityOrdered) AS Ranking
-	FROM QuantityOrdered
-)
-SELECT * FROM CityRank
-
-
-
---Total purchase amount made by each employee
+--Total amount in purchases done by each employee
 SELECT SUM(PurchaseAmount) AmountPurchased, EmployeeID FROM ods.SupplierTrans ST
 	JOIN ods.Supplier S ON ST.SupplierID = S.SupplierID
 	LEFT JOIN ods.SupplierAddress SA ON S.AddressID = SA.AddressID
 	LEFT JOIN ods.City C ON SA.cityID = C.cityID
 	LEFT JOIN ods.StateProvince SP ON C.ProvinceID = SP.ProvinceID
 	LEFT JOIN ods.Country CT ON SP.CountryID = CT.CountryID
-	WHERE CountryName = 'United States'
+GROUP BY EmployeeID
+ORDER BY EmployeeID
+
+
+--Total quantity of supplies ordered by each employee
+SELECT SUM(OrderQty) QuantityOrdered, EmployeeID FROM ods.SupplierTrans ST
+	JOIN ods.Supplier S ON ST.SupplierID = S.SupplierID
+	LEFT JOIN ods.SupplierAddress SA ON S.AddressID = SA.AddressID
+	LEFT JOIN ods.City C ON SA.cityID = C.cityID
+	LEFT JOIN ods.StateProvince SP ON C.ProvinceID = SP.ProvinceID
+	LEFT JOIN ods.Country CT ON SP.CountryID = CT.CountryID
 GROUP BY EmployeeID
 ORDER BY EmployeeID
 
