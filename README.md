@@ -10,3 +10,6 @@ In this project, we explore an organization's purchase history to extract summar
     c. Average order processing times for each product
     
     d. Total purchase amount and quantity of supplies made by each employee
+
+Pivot Table
+https://drive.google.com/drive/folders/1x5iu2aKAUagvj1ijF_gqFVE8wkXzO9MM?usp=sharing
