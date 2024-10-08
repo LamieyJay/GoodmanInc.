@@ -1,4 +1,4 @@
-				-- Management request summary 
+				-- Management requested summary 
 				
 -- Total amount purchased from each supplier.  
 SELECT SUM(PurchaseAmount) TotalAmountPurchased, 
